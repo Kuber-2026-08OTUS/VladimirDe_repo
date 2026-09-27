@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: homework-pvc
+  namespace: homework
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  storageClassName: homework-storage #для задания co*
+ 
+  resources:
+    requests:
+      storage: 1Gi
