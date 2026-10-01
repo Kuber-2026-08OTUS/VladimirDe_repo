@@ -1,0 +1,54 @@
+replicaCount: 3
+
+image:
+  repository: busybox
+  tag: "1.37"
+
+container:
+  name: web
+  port: 8000
+
+service:
+  name: homework-service
+  type: ClusterIP
+  port: 8000
+
+host: homework.otus
+
+probes:
+  readiness:
+    enabled: true
+    path: /index.html
+    initialDelaySeconds: 2
+    periodSeconds: 5
+
+gateway:
+  enabled: true
+  name: homework-gateway
+  className: traefik
+  port: 80
+
+httpRoute:
+  enabled: true
+  name: homework-route
+
+nodeSelector:
+  homework: "true"
+
+serviceAccount:
+  create: true
+  name: monitoring
+
+persistence:
+  name: homework-pvc
+  storageClassName: homework-storage
+  size: 1Gi
+
+configMap:
+  name: homework-config
+
+redis:
+  enabled: true
+  image:
+   repository: bitnamilegacy/redis
+   tag: "8.2.1-debian-12-r0"

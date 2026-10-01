@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ include "homework.fullname" . }}
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      {{- include "homework.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "homework.selectorLabels" . | nindent 8 }}
+
+    spec:
+      serviceAccountName: {{ include "homework.serviceAccountName" . }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      initContainers:
+        - name: init-container
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              wget -O /init/index.html https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+
+          volumeMounts:
+            - name: homework-volume
+              mountPath: /init
+
+        - name: metrics
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+
+              wget \
+                --no-check-certificate \
+                --header="Authorization: Bearer $TOKEN" \
+                -O /init/metrics.html \
+                https://kubernetes.default.svc/metrics
+
+          volumeMounts:
+            - name: homework-volume
+              mountPath: /init
+
+      containers:
+        - name: {{ .Values.container.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          command:
+            - sh
+            - -c
+            - |
+              httpd -f -p {{ .Values.container.port }} -h /homework
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.container.port }}
+              protocol: TCP
+
+          volumeMounts:
+            - name: homework-volume
+              mountPath: /homework
+
+            - name: homework-config
+              mountPath: /homework/conf
+
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.container.port }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          {{- end }}
+
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - rm -f /homework/index.html
+
+      volumes:
+        - name: homework-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.name }}
+
+        - name: homework-config
+          configMap:
+            name: {{ .Values.configMap.name }}
