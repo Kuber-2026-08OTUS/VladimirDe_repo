@@ -1,0 +1,14 @@
+apiVersion: v2
+name: homework
+description: Helm chart for the OTUS Kubernetes homework application
+
+type: application
+
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: redis
+    version: "22.0.7"
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    condition: redis.enabled

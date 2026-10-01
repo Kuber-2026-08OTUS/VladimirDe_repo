@@ -1,0 +1,31 @@
+replicaCount: 5
+
+image:
+  repository: bitnamilegacy/kafka
+  tag: "3.5.2"
+
+auth:
+  clientProtocol: sasl
+  interBrokerProtocol: sasl
+  controllerProtocol: plaintext
+
+  sasl:
+    mechanisms: plain
+    interBrokerMechanism: plain
+
+    jaas:
+      clientUsers:
+        - user
+      clientPasswords:
+        - "kafka-client-password"
+      interBrokerUser: admin
+      interBrokerPassword: "kafka-interbroker-password"
+
+kraft:
+  enabled: true
+  processRoles: broker,controller
+  clusterId: "07XegVlRNoP2DrkLdbWy1w"
+
+service:
+  headless:
+    publishNotReadyAddresses: true

@@ -1,0 +1,15 @@
+```text
+Application has been deployed successfully.
+
+Application URL:
+  http://{{ .Values.host }}/index.html
+
+Metrics URL:
+  http://{{ .Values.host }}/metrics.html
+
+HTTPRoute:
+  kubectl get httproute -n {{ .Release.Namespace }}
+
+Service:
+  kubectl get svc -n {{ .Release.Namespace }}
+```

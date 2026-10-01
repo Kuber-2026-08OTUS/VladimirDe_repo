@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: {{ .Values.configMap.name }}
+
+data:
+  file: |
+    This file is provided by ConfigMap.
+    Kubernetes Storage homework.
