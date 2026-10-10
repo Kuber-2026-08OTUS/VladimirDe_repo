@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-monitoring
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-monitoring
+  template:
+    metadata:
+      labels:
+        app: nginx-monitoring
+    spec:
+      containers:
+        - name: nginx
+          image: custom-nginx:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.5.1
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:8080/stub_status
+          ports:
+            - name: metrics
+              containerPort: 9113
