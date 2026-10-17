@@ -1,0 +1,69 @@
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  schemaConfig:
+    configs:
+      - from: "2024-04-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-chunks-rk-2026-1017
+      ruler: loki-chunks-rk-2026-1017
+    s3:
+      endpoint: storage.yandexcloud.net
+      region: ru-central1
+      s3ForcePathStyle: true
+      insecure: false
+
+singleBinary:
+  replicas: 1
+  nodeSelector:
+    node-role: infra
+  tolerations:
+    - key: node-role
+      operator: Equal
+      value: infra
+      effect: NoSchedule
+  persistence:
+    enabled: true
+    size: 10Gi
+  extraEnvFrom:
+    - secretRef:
+        name: loki-s3-credentials
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+backend:
+  replicas: 0
+
+read:
+  replicas: 0
+
+write:
+  replicas: 0
+
+gateway:
+  enabled: false
+
+test:
+  enabled: false
+
+lokiCanary:
+  enabled: false
+
